@@ -1,4 +1,4 @@
-const surahDetails = [
+export const surahDetails = [
     { number: '001', name: "Al-Fatihah", juz: [1] },
     { number: '002', name: "Al-Baqarah", juz: [1, 2, 3] },
     { number: '003', name: "Ali 'Imran", juz: [3, 4] },
@@ -114,5 +114,3 @@ const surahDetails = [
     { number: '113', name: "Al-Falaq", juz: [30] },
     { number: '114', name: "An-Nas", juz: [30] }
   ];
-
-module.exports = surahDetails;
