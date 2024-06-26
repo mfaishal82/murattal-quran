@@ -6,16 +6,33 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Platform,
 } from "react-native";
 import axios from "axios";
-import * as FileSystem from "expo-file-system";
 import { Audio, AVPlaybackStatus } from "expo-av";
-import { Picker } from "@react-native-picker/picker";
-import RadioForm from "react-native-simple-radio-button";
-import { MaterialIcons } from "@expo/vector-icons";
-import { surahDetails } from "../scripts/surahDetails";
+import SurahPicker from "../components/SurahPicker";
+import ReciterPicker from "../components/ReciterPicker";
+import MoshafRadio from "../components/MoshafRadio";
+import AudioControls from "../components/AudioControls";
+import DownloadButton from "../components/DownloadButton";
+import ProgressBar from "../components/ProgressBar";
+import moment from "moment-hijri";
+import { registerBackgroundTask } from "../scripts/BackgroundAudioTask";
+
+const toArabicNumbers = (num: string): string => {
+  const arabicDigits: { [key: string]: string } = {
+    '0': '٠',
+    '1': '١',
+    '2': '٢',
+    '3': '٣',
+    '4': '٤',
+    '5': '٥',
+    '6': '٦',
+    '7': '٧',
+    '8': '٨',
+    '9': '٩'
+  };
+  return num.replace(/[0-9]/g, (d) => arabicDigits[d]);
+};
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
@@ -28,6 +45,7 @@ const Index = () => {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [downloading, setDownloading] = useState(false);
+  const [hijriDate, setHijriDate] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,7 +56,6 @@ const Index = () => {
         setReciters(response.data.reciters);
         setLoading(false);
       } catch (error) {
-        console.error(error);
         setLoading(false);
       }
     };
@@ -52,6 +69,16 @@ const Index = () => {
     };
   }, [sound]);
 
+  useEffect(() => {
+    const hijriDate = moment().format('iD iMMMM iYYYY');
+    const arabicDate = hijriDate.split(' ').map(toArabicNumbers).join(' ');
+    setHijriDate(arabicDate);
+  }, []);
+
+  // useEffect(() => {
+  //   registerBackgroundTask();
+  // }, []);
+
   const playAudio = async () => {
     if (!selectedSurah || !selectedReciter || !selectedMoshaf) return;
 
@@ -62,7 +89,7 @@ const Index = () => {
       return;
     }
 
-    const reciter = reciters.find((r) => r.id === selectedReciter);
+    const reciter = reciters.find((r: any) => r.id === selectedReciter);
     const moshaf = reciter?.moshaf.find(
       (m: { id: string }) => m.id === selectedMoshaf
     );
@@ -81,7 +108,7 @@ const Index = () => {
       setSound(newSound);
       setIsPlaying(true);
     } catch (error) {
-      console.error("Error loading audio", error);
+      // console.error("Error loading audio", error);
       Alert.alert(
         "Error",
         "Maaf audio Qari' ini tidak tersedia. Silahkan coba Qari' lain."
@@ -113,191 +140,76 @@ const Index = () => {
     }
   };
 
-  const downloadAudio = async () => {
-    if (!selectedSurah || !selectedReciter || !selectedMoshaf) return;
-
-    const reciter = reciters.find((r) => r.id === selectedReciter);
-    const moshaf = reciter?.moshaf.find(
-      (m: { id: string }) => m.id === selectedMoshaf
-    );
-    const audioUrl = `${moshaf?.server}${selectedSurah}.mp3`;
-
-    try {
-      setDownloading(true); // Mulai download, atur state downloading ke true
-
-      const downloadResumable = FileSystem.createDownloadResumable(
-        audioUrl,
-        FileSystem.documentDirectory +
-          `${selectedSurah}_${selectedReciter}_${selectedMoshaf}.mp3`,
-        {},
-        onDownloadProgress
-      );
-
-      const downloadResult = await downloadResumable.downloadAsync();
-      const { uri } = downloadResult!;
-      console.log("Downloaded to:", uri);
-      Alert.alert(
-        "Download Complete",
-        `File MP3 has been downloaded successfully. \nYou can find it in ${uri}`
-      );
-    } catch (error) {
-      console.error("Download error:", error);
-      Alert.alert("Download Failed", "Failed to download MP3 file.");
-    } finally {
-      setDownloading(false); // Setelah selesai (baik berhasil atau gagal), atur state downloading kembali ke false
-    }
-  };
-
-  const onDownloadProgress = (
-    downloadProgress: FileSystem.DownloadProgressData
-  ) => {
-    const progress =
-      downloadProgress.totalBytesWritten /
-      downloadProgress.totalBytesExpectedToWrite;
-    setDownloadProgress(progress);
-  };
-
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" />;
   }
 
-  const surahOptions = surahDetails.map((surah) => {
-    const label = `${surah.number}. ${surah.name} {${surah.juz.join(", ")}}`;
-    return (
-      <Picker.Item key={surah.number} label={label} value={surah.number} />
-    );
-  });
-
-  const reciterOptions = reciters.map((reciter) => (
-    <Picker.Item key={reciter.id} label={reciter.name} value={reciter.id} />
-  ));
-
-  const moshafOptions = selectedReciter
-    ? reciters
-        .find((r) => r.id === selectedReciter)
-        .moshaf.map((moshaf: any) => ({
-          label: moshaf.name,
-          value: moshaf.id,
-        }))
-    : [];
+  const audioUrl = `${
+    reciters
+      .find((r) => r.id === selectedReciter)
+      ?.moshaf.find((m: { id: string }) => m.id === selectedMoshaf)?.server
+  }${selectedSurah}.mp3`;
 
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text style={styles.title}>Murattal Al-Qur'an</Text>
-        <Text style={styles.label}>Choose Surah</Text>
-        <Picker
-          selectedValue={selectedSurah}
-          onValueChange={(itemValue) => setSelectedSurah(itemValue)}
-          style={styles.picker}
-        >
-          {surahOptions}
-        </Picker>
-        {selectedSurah && (
-          <>
-            <Text style={styles.label}>Choose Qari'</Text>
-            <Picker
-              selectedValue={selectedReciter}
-              onValueChange={(itemValue) => setSelectedReciter(itemValue)}
-              style={styles.picker}
-            >
-              {reciterOptions}
-            </Picker>
-          </>
-        )}
-        {selectedReciter && (
-          <>
-            <Text style={styles.label}>Choose Moshaf</Text>
-            <RadioForm
-              radio_props={moshafOptions}
-              initial={-1}
-              onPress={(value) => setSelectedMoshaf(value)}
-              buttonColor={"#2E7D32"}
-            />
-          </>
-        )}
-        {selectedMoshaf && (
-          <>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={playAudio}
-                disabled={isPlaying}
-                style={styles.iconButton}
-              >
-                <MaterialIcons
-                  name="play-arrow"
-                  size={24}
-                  color={isPlaying ? "#aaa" : "#4CAF50"}
-                />
-                <Text
-                  style={[
-                    styles.buttonText,
-                    { color: isPlaying ? "#aaa" : "#4CAF50" },
-                  ]}
-                >
-                  Play
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={pauseAudio}
-                disabled={!isPlaying}
-                style={styles.iconButton}
-              >
-                <MaterialIcons
-                  name="pause"
-                  size={24}
-                  color={!isPlaying ? "#aaa" : "#FFC107"}
-                />
-                <Text
-                  style={[
-                    styles.buttonText,
-                    { color: !isPlaying ? "#aaa" : "#FFC107" },
-                  ]}
-                >
-                  Pause
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={stopAudio}
-                disabled={!isPlaying && !isPaused}
-                style={styles.iconButton}
-              >
-                <MaterialIcons
-                  name="stop"
-                  size={24}
-                  color={!isPlaying && !isPaused ? "#aaa" : "#D32F2F"}
-                />
-                <Text
-                  style={[
-                    styles.buttonText,
-                    { color: !isPlaying && !isPaused ? "#aaa" : "#D32F2F" },
-                  ]}
-                >
-                  Stop
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              onPress={downloadAudio}
-              style={[styles.iconButton, styles.downloadButton]}
-            >
-              <MaterialIcons name="file-download" size={24} color="#2196F3" />
-              <Text style={[styles.buttonText, { color: "#2196F3" }]}>
-                Download
-              </Text>
-            </TouchableOpacity>
-            {downloading && (
-              <View style={styles.progressContainer}>
-                <View
-                  style={[
-                    styles.progressBar,
-                    { width: `${downloadProgress * 100}%` },
-                  ]}
-                />
-              </View>
-            )}
-          </>
-        )}
+        <View style={styles.headContainer}>
+          <Text style={styles.dateStyle}>
+            {hijriDate}
+          </Text>
+          <Text style={{color: "white"}}>
+            "So when the Qur'an is recited, <Text style={{fontWeight: "bold", fontSize: 30}}>then listen to it & pay attention</Text> that you may receive mercy."
+          </Text>
+        </View>
+        <View style={styles.mainContainer}>
+          <Text style={styles.title}>Murattal Al-Qur'an</Text>
+          <Text style={styles.label}>Choose Surah</Text>
+          <SurahPicker
+            selectedSurah={selectedSurah}
+            setSelectedSurah={setSelectedSurah}
+          />
+          {selectedSurah && (
+            <>
+              <Text style={styles.label}>Choose Qari'</Text>
+              <ReciterPicker
+                reciters={reciters}
+                selectedReciter={selectedReciter}
+                setSelectedReciter={setSelectedReciter}
+              />
+            </>
+          )}
+          {selectedReciter && (
+            <>
+              <Text style={styles.label}>Choose Moshaf</Text>
+              <MoshafRadio
+                reciters={reciters}
+                selectedReciter={selectedReciter}
+                selectedMoshaf={selectedMoshaf}
+                setSelectedMoshaf={setSelectedMoshaf}
+              />
+            </>
+          )}
+          {selectedMoshaf && (
+            <>
+              <AudioControls
+                isPlaying={isPlaying}
+                isPaused={isPaused}
+                playAudio={playAudio}
+                pauseAudio={pauseAudio}
+                stopAudio={stopAudio}
+              />
+              <DownloadButton
+                audioUrl={audioUrl}
+                downloadProgress={downloadProgress}
+                setDownloadProgress={setDownloadProgress}
+                setDownloading={setDownloading}
+              />
+              {downloading && (
+                <ProgressBar downloadProgress={downloadProgress} />
+              )}
+            </>
+          )}
+        </View>
       </View>
     </ScrollView>
   );
@@ -305,9 +217,27 @@ const Index = () => {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "green"
+  },
+  headContainer : {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+    marginBottom: 30,
+    paddingHorizontal: 16,
+  },
+  mainContainer: {
+    flex: 3,
+    justifyContent: "center",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    backgroundColor: "white",
     padding: 16,
-    backgroundColor: "#FAFAFA",
+  },
+  dateStyle: {
+    color: "yellow",
+    textDecorationLine: "underline",
   },
   title: {
     fontSize: 28,
@@ -321,57 +251,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
     color: "#3E4A59",
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-    backgroundColor: "#FFF",
-    borderColor: "#DDD",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  radioLabel: {
-    fontSize: 16,
-    color: "#3E4A59",
-    marginRight: 10,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 20,
-  },
-  iconButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
-    borderWidth: 1,
-    borderColor: "#DDD",
-  },
-  buttonText: {
-    marginLeft: 5,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  downloadButton: {
-    marginTop: 10,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  progressContainer: {
-    height: 10,
-    width: "100%",
-    backgroundColor: "#E0E0E0",
-    borderRadius: 5,
-    overflow: "hidden",
-    marginTop: 10,
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#2196F3",
   },
 });
 
