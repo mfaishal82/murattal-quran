@@ -1,52 +1,78 @@
-import React from 'react';
-import { TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
+import React from "react";
+import { TouchableOpacity, Text, Alert, StyleSheet } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 
 interface DownloadButtonProps {
   audioUrl: string;
   downloadProgress: number;
   setDownloadProgress: (progress: number) => void;
   setDownloading: (downloading: boolean) => void;
+  isDisabled: boolean;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ audioUrl, downloadProgress, setDownloadProgress, setDownloading }) => {
+const DownloadButton: React.FC<DownloadButtonProps> = ({
+  audioUrl,
+  downloadProgress,
+  setDownloadProgress,
+  setDownloading,
+  isDisabled,
+}) => {
   const downloadAudio = async () => {
     try {
       setDownloading(true);
       const downloadResumable = FileSystem.createDownloadResumable(
         audioUrl,
-        FileSystem.documentDirectory + `${audioUrl.split('/').pop()}`,
+        FileSystem.documentDirectory + `${audioUrl.split("/").pop()}`,
         {},
         onDownloadProgress
       );
 
-      const { uri } = await downloadResumable.downloadAsync() as FileSystem.DownloadResult;
-      console.log('Downloaded to:', uri);
-      Alert.alert('Download Complete', `File MP3 has been downloaded successfully.\nYou can find it in ${uri}`);
+      const { uri } =
+        (await downloadResumable.downloadAsync()) as FileSystem.DownloadResult;
+      console.log("Downloaded to:", uri);
+      Alert.alert(
+        "Download Complete",
+        `File MP3 has been downloaded successfully.\nYou can find it in ${uri}`
+      );
     } catch (error) {
-      console.error('Download error:', error);
-      Alert.alert('Download Failed', 'Failed to download MP3 file.');
+      console.error("Download error:", error);
+      Alert.alert("Download Failed", "Failed to download MP3 file.");
     } finally {
       setDownloading(false);
     }
   };
 
   const onDownloadProgress = (progress: FileSystem.DownloadProgressData) => {
-    const progressRatio = progress.totalBytesWritten / progress.totalBytesExpectedToWrite;
+    const progressRatio =
+      progress.totalBytesWritten / progress.totalBytesExpectedToWrite;
     setDownloadProgress(progressRatio);
   };
 
   return (
-<TouchableOpacity
-              onPress={downloadAudio}
-              style={[styles.iconButton, styles.downloadButton]}
-            >
-              <MaterialIcons name="file-download" size={24} color="#2196F3" />
-              <Text style={[styles.buttonText, { color: "#2196F3" }]}>
-                Download
-              </Text>
-            </TouchableOpacity>
+    <TouchableOpacity
+      onPress={downloadAudio}
+      style={[
+        styles.iconButton,
+        styles.downloadButton,
+        isDisabled && styles.disabledButton,
+      ]}
+      disabled={isDisabled}
+    >
+      <MaterialIcons
+        name="file-download"
+        size={24}
+        color={isDisabled ? "#9E9E9E" : "#2196F3"}
+      />
+      <Text
+        style={[
+          styles.buttonText,
+          { color: isDisabled ? "#9E9E9E" : "#2196F3" },
+        ]}
+      >
+        Download
+      </Text>
+    </TouchableOpacity>
   );
 };
 
@@ -78,11 +104,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 20,
   },
-  radioLabel: {
-    fontSize: 16,
-    color: "#3E4A59",
-    marginRight: 10,
-  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -107,19 +128,12 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    color: "grey",
   },
-  progressContainer: {
-    height: 10,
-    width: "100%",
-    backgroundColor: "#E0E0E0",
-    borderRadius: 5,
-    overflow: "hidden",
-    marginTop: 10,
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: "#F5F5F5",
   },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#2196F3",
-  }
-})
+});
 
 export default DownloadButton;

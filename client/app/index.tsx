@@ -51,6 +51,7 @@ const Index = () => {
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [downloading, setDownloading] = useState(false);
   const [hijriDate, setHijriDate] = useState<string>("");
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -214,12 +215,10 @@ const Index = () => {
         <View style={styles.mainContainer}>
           <Text style={styles.title}>Murattal Al-Qur'an</Text>
           <Text style={styles.label}>Choose Surah</Text>
-          <View style={styles.pickerContainer}>
             <SurahPicker
               selectedSurah={selectedSurah}
               setSelectedSurah={setSelectedSurah}
             />
-          </View>
           {selectedSurah && (
             <>
               <Text style={styles.label}>Choose Qari'</Text>
@@ -255,6 +254,7 @@ const Index = () => {
                 downloadProgress={downloadProgress}
                 setDownloadProgress={setDownloadProgress}
                 setDownloading={setDownloading}
+                isDisabled={true}
               />
               {downloading && (
                 <View style={styles.progressBar}>
@@ -277,7 +277,7 @@ const Index = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E8449", // Warna hijau yang lebih gelap
+    backgroundColor: "#1E8449"
   },
   headContainer: {
     justifyContent: "center",

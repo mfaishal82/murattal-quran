@@ -3,13 +3,33 @@ import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIc
 
 export default function MyTabs() {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: '#1E8449',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 50,
+          paddingBottom: 5,
+        },
+        tabBarActiveTintColor: '#FFD700',
+        tabBarInactiveTintColor: '#FFFFFF',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: 'bold',
+        },
+        tabBarIconStyle: {
+          marginTop: 5,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" color={color} size={size} />
+            <MaterialCommunityIcons name="book-open-variant" size={size} color={color} />
           ),
           title: "Home"
         }}
@@ -32,6 +52,16 @@ export default function MyTabs() {
             <MaterialCommunityIcons name="information" color={color} size={size} />
           ),
           title: "About App"
+        }}
+      />
+      <Tabs.Screen
+        name="LoginScreen"
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="login" color={color} size={size} />
+          ),
+          title: "Login"
         }}
       />
     </Tabs>

@@ -1,17 +1,129 @@
-import { Text, View } from "react-native"
+import React from 'react';
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity, Linking } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const AboutApp = () => {
+    const appVersion = "1.0.0"; // Ganti dengan versi aplikasi Anda
+
+    const openLink = (url: string) => {
+        Linking.openURL(url).catch((err) => console.error('Terjadi kesalahan', err));
+    };
+
     return (
-        <View>
-            <Text style={{ fontSize: 24, fontWeight: "bold" }}>About This App</Text>
-            <Text>This application is designed to provide information about the Quran recitation (murattal). It allows users to listen to various recitations of the Quran.</Text>
-            <Text>Features:</Text>
-            <Text>- Multiple reciters to choose from</Text>
-            <Text>- Search functionality to find specific surahs or reciters</Text>
-            <Text>- Bookmark favorite recitations</Text>
-            <Text>- Adjustable playback speed</Text>
-        </View>
-    )
+        <ScrollView style={styles.container}>
+            <View style={styles.header}>
+                <MaterialCommunityIcons name="book-open-page-variant" size={80} color="#1E8449" />
+                <Text style={styles.title}>Tasmi'</Text>
+                <Text style={styles.version}>Version {appVersion}</Text>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>About</Text>
+                <Text style={styles.description}>
+                    Murattal Al-Qur'an is an application designed to provide easy access to Quranic recitations. 
+                    Listen to various reciters, download surahs, and enhance your Quranic experience.
+                </Text>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Features</Text>
+                <Text style={styles.bulletPoint}>• Listen to Quranic recitations</Text>
+                <Text style={styles.bulletPoint}>• Multiple reciters available</Text>
+                <Text style={styles.bulletPoint}>• Prayer times information</Text>
+                <Text style={[styles.bulletPoint, { textDecorationLine: "line-through" }]}>• Download surahs for offline listening</Text>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Contact</Text>
+                <TouchableOpacity 
+                    style={styles.link} 
+                    onPress={() => openLink('mailto:mf.ihbs@gmail.com')}
+                >
+                    <Text style={styles.linkText}>mf.ihbs@gmail.com</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Follow Us</Text>
+                <TouchableOpacity 
+                    style={styles.link} 
+                    onPress={() => openLink('https://www.linkedin.com/in/mfaishal82/')}
+                >
+                    <MaterialCommunityIcons name="linkedin" size={24} color="#1E8449" />
+                    <Text style={styles.linkText}>LinkedIn</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.link} 
+                    onPress={() => openLink('https://facebook.com/mf.ihbs')}
+                >
+                    <MaterialCommunityIcons name="facebook" size={24} color="#1E8449" />
+                    <Text style={styles.linkText}>Facebook</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.link} 
+                    onPress={() => openLink('https://github.com/mfaishal82')}
+                >
+                    <MaterialCommunityIcons name="github" size={24} color="#1E8449" />
+                    <Text style={styles.linkText}>GitHub</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
+    );
 }
 
-export default AboutApp
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F5F5F5',
+    },
+    header: {
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#FFFFFF',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1E8449',
+        marginTop: 10,
+    },
+    version: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 5,
+    },
+    section: {
+        padding: 20,
+        backgroundColor: '#FFFFFF',
+        marginTop: 10,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1E8449',
+        marginBottom: 10,
+    },
+    description: {
+        fontSize: 16,
+        color: '#333',
+        lineHeight: 24,
+    },
+    bulletPoint: {
+        fontSize: 16,
+        color: '#333',
+        marginBottom: 5,
+    },
+    link: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    linkText: {
+        fontSize: 16,
+        color: '#1E8449',
+        textDecorationLine: 'underline',
+        marginLeft: 10,
+    },
+});
+
+export default AboutApp;
