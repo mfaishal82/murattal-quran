@@ -6,6 +6,7 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
+  TextInput,
 } from "react-native";
 import axios from "axios";
 import { Audio, AVPlaybackStatus } from "expo-av";
@@ -16,23 +17,27 @@ import AudioControls from "../components/AudioControls";
 import DownloadButton from "../components/DownloadButton";
 import ProgressBar from "../components/ProgressBar";
 import moment from "moment-hijri";
-import { registerBackgroundTask } from "../scripts/BackgroundAudioTask";
+import { Dimensions } from "react-native";
+// import tw from 'tailwind-react-native-classnames';
+// import { registerBackgroundTask } from "../scripts/BackgroundAudioTask";
 
 const toArabicNumbers = (num: string): string => {
   const arabicDigits: { [key: string]: string } = {
-    '0': '٠',
-    '1': '١',
-    '2': '٢',
-    '3': '٣',
-    '4': '٤',
-    '5': '٥',
-    '6': '٦',
-    '7': '٧',
-    '8': '٨',
-    '9': '٩'
+    "0": "٠",
+    "1": "١",
+    "2": "٢",
+    "3": "٣",
+    "4": "٤",
+    "5": "٥",
+    "6": "٦",
+    "7": "٧",
+    "8": "٨",
+    "9": "٩",
   };
   return num.replace(/[0-9]/g, (d) => arabicDigits[d]);
 };
+
+const { width } = Dimensions.get("window");
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
@@ -70,10 +75,52 @@ const Index = () => {
   }, [sound]);
 
   useEffect(() => {
-    const hijriDate = moment().format('iD iMMMM iYYYY');
-    const arabicDate = hijriDate.split(' ').map(toArabicNumbers).join(' ');
+    const hijriDate = moment().format("iD iMMMM iYYYY");
+    const arabicDate = hijriDate.split(" ").map(toArabicNumbers).join(" ");
     setHijriDate(arabicDate);
   }, []);
+
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          staysActiveInBackground: true,
+          // Opsi lain yang mungkin Anda perlukan:
+          playThroughEarpieceAndroid: false,
+          // interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+          shouldDuckAndroid: true,
+          // interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
+          playsInSilentModeIOS: true,
+        });
+      } catch (error) {
+        console.error("Error setting audio mode", error);
+      }
+    };
+
+    setupAudio();
+
+    // Cleanup function jika diperlukan
+    return () => {
+      // Lakukan cleanup jika diperlukan
+    };
+  }, []); // Empty dependency array means this effect runs once on mount
+
+  const playBackgroundAudio = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: 'URL_AUDIO_ANDA' },
+      { shouldPlay: true, isLooping: false },
+      onPlaybackStatusUpdate
+    );
+    setSound(sound);
+  };
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
 
   // useEffect(() => {
   //   registerBackgroundTask();
@@ -140,9 +187,9 @@ const Index = () => {
     }
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#2E7D32" />;
-  }
+  // if (loading) {
+  //   return <ActivityIndicator size="large" color="#2E7D32" />;
+  // }
 
   const audioUrl = `${
     reciters
@@ -154,20 +201,25 @@ const Index = () => {
     <ScrollView>
       <View style={styles.container}>
         <View style={styles.headContainer}>
-          <Text style={styles.dateStyle}>
-            {hijriDate}
-          </Text>
-          <Text style={{color: "white"}}>
-            "So when the Qur'an is recited, <Text style={{fontWeight: "bold", fontSize: 30}}>then listen to it & pay attention</Text> that you may receive mercy."
+          <Text style={styles.hijriDateStyle}>{hijriDate}</Text>
+          <Text style={styles.quoteText}>
+            "So when the Qur'an is recited,{" "}
+            <Text style={styles.quoteHighlight}>
+              then listen to it & pay attention
+            </Text>{" "}
+            that you may receive mercy."
           </Text>
         </View>
+        {loading && <ActivityIndicator size="large" color="#2E7D32" />}
         <View style={styles.mainContainer}>
           <Text style={styles.title}>Murattal Al-Qur'an</Text>
           <Text style={styles.label}>Choose Surah</Text>
-          <SurahPicker
-            selectedSurah={selectedSurah}
-            setSelectedSurah={setSelectedSurah}
-          />
+          <View style={styles.pickerContainer}>
+            <SurahPicker
+              selectedSurah={selectedSurah}
+              setSelectedSurah={setSelectedSurah}
+            />
+          </View>
           {selectedSurah && (
             <>
               <Text style={styles.label}>Choose Qari'</Text>
@@ -205,7 +257,14 @@ const Index = () => {
                 setDownloading={setDownloading}
               />
               {downloading && (
-                <ProgressBar downloadProgress={downloadProgress} />
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progress,
+                      { width: `${downloadProgress * 100}%` },
+                    ]}
+                  />
+                </View>
               )}
             </>
           )}
@@ -217,40 +276,94 @@ const Index = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "green"
-  },
-  headContainer : {
     flex: 1,
+    backgroundColor: "#1E8449", // Warna hijau yang lebih gelap
+  },
+  headContainer: {
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 50,
-    marginBottom: 30,
-    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   mainContainer: {
-    flex: 3,
-    justifyContent: "center",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    backgroundColor: "white",
-    padding: 16,
+    flex: 1,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: "#F5F5F5",
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  dateStyle: {
-    color: "yellow",
-    textDecorationLine: "underline",
+  hijriDateStyle: {
+    color: "#FFD700",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  quoteText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  quoteHighlight: {
+    fontWeight: "bold",
+    fontSize: 20,
+    color: "#FFD700",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
-    color: "#2E7D32",
+    marginBottom: 25,
+    color: "#1E8449",
   },
   label: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 8,
-    color: "#3E4A59",
+    marginBottom: 10,
+    color: "#34495E",
+  },
+  pickerContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    elevation: 3,
+  },
+  button: {
+    backgroundColor: "#1E8449",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  progressBar: {
+    height: 10,
+    width: width - 40,
+    backgroundColor: "#E0E0E0",
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  progress: {
+    height: 10,
+    backgroundColor: "#1E8449",
+    borderRadius: 5,
   },
 });
 
