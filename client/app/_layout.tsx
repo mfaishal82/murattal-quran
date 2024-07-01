@@ -1,8 +1,9 @@
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import MyTabs from "@/navigators/MyTabs";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-        <MyTabs />
+    <Stack>
+      <Stack.Screen name="index" options={{title: "Application", headerShown: false}}/>
+    </Stack>
   );
 }

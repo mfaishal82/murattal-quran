@@ -13,18 +13,14 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "UIBackgroundModes": ["audio"]
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.quranmurattal.client",
-      "permissions": ["FOREGROUND_SERVICE"]
+      "package": "com.quranmurattal.client"
     },
     "web": {
       "bundler": "metro",
