@@ -54,16 +54,6 @@ export default function MyTabs() {
           title: "About App"
         }}
       />
-      <Tabs.Screen
-        name="LoginScreen"
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="login" color={color} size={size} />
-          ),
-          title: "Login"
-        }}
-      />
     </Tabs>
   );
 }

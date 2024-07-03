@@ -39,7 +39,15 @@ const AboutApp = () => {
                     style={styles.link} 
                     onPress={() => openLink('mailto:mf.ihbs@gmail.com')}
                 >
+                    <MaterialCommunityIcons name="email" size={24} color="#1E8449" />
                     <Text style={styles.linkText}>mf.ihbs@gmail.com</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.link} 
+                    onPress={() => openLink('https://wa.me/6283876657601')}
+                >
+                    <MaterialCommunityIcons name="whatsapp" size={24} color="#1E8449" />
+                    <Text style={styles.linkText}>6283876657601</Text>
                 </TouchableOpacity>
             </View>
 

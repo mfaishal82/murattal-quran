@@ -80,7 +80,12 @@ const PrayerTime: React.FC = () => {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#2E7D32" />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E8449" />
+        <Text style={styles.loadingText}>Loading prayer times...</Text>
+      </View>
+    );
   }
 
   if (error) {
@@ -211,6 +216,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#1E8449',
+    fontWeight: '600',
+  }
 });
 
 export default PrayerTime;

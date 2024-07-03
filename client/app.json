@@ -15,8 +15,11 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
-      }
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      },
+      "bundleIdentifier": "com.quranmurattal.client"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +27,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.quranmurattal.client",
-      "permissions": ["FOREGROUND_SERVICE"]
+      "permissions": [
+        "FOREGROUND_SERVICE"
+      ]
     },
     "web": {
       "bundler": "metro",
