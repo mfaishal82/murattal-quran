@@ -18,7 +18,8 @@ module.exports = {
       fullName: 'Admin',
       userName: 'admin',
       email: 'admin@mail.com',
-      password: hashPassword('12345678'),
+      password: hashPassword('queryInterfacePassword123'),
+      role: 'admin',
       createdAt: new Date(),
       updatedAt: new Date()
     }])
