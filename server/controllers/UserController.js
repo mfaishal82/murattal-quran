@@ -5,17 +5,33 @@ const { signToken } = require('../helpers/jwt')
 module.exports = {
     async register(req, res, next) {
         try {
+            // console.log(req.body);
             const { fullName, userName, email, password } = req.body
 
-            await User.create({fullName, userName, email, password})
+            if (!userName) {
+                return res.status(400).json({ error: 'userName is required' });
+            }
+
+            if (!fullName) {
+                return res.status(400).json({ error: 'fullName is required' });
+            }
+            if (!email) {
+                return res.status(400).json({ error: 'email is required' });
+            }
+            if (!password) {
+                return res.status(400).json({ error: 'password is required' });
+            }
+
+            const user = await User.create({ fullName, userName, email, password });
 
             res.status(201).json({
-                fullName,
-                userName,
-                email
-            })
+                fullName: user.fullName,
+                userName: user.userName,
+                email: user.email
+            });
         } catch (error) {
-            console.log(error)            
+            // console.log(error)
+            res.status(error.status || 500).json({message: error.message || "Internal server error"})            
         }
     },
     async login(req, res, next) {
@@ -37,6 +53,7 @@ module.exports = {
             res.status(200).json({access_token: token})
         } catch (error) {
             console.log(error)
+            res.status(error.status || 500).json({message: error.message || "Internal server error"})
         }
     },
     async post(req, res, next) {
