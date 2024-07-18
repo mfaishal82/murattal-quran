@@ -5,8 +5,8 @@ const MyStack = () => {
     return(
         <>
         <Stack>
-            <Stack.Screen name="loginScreen"/>
-            <Stack.Screen name="registerScreen"/>
+            <Stack.Screen name="LoginScreen" options={{ headerShown: false }} />
+            <Stack.Screen name="RegisterScreen" options={{ headerShown: false }} />
         </Stack>
         </>
     )

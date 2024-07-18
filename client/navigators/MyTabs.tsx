@@ -1,29 +1,45 @@
 import { Stack, Tabs } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+const Tab = createBottomTabNavigator();
 
 export default function MyTabs() {
+  // if (!isSignedIn) {
+  //   return (
+  //     <Stack>
+  //       <Stack.Screen
+  //         name="LoginScreen"
+  //         options={{ headerShown: false }}
+  //       />
+  //       <Stack.Screen
+  //         name="RegisterScreen"
+  //         options={{ headerShown: false }}
+  //       />
+  //     </Stack>
+  //   );
+  // }
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarStyle: {
-          backgroundColor: '#1E8449',
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          height: 50,
-          paddingBottom: 5,
-        },
-        tabBarActiveTintColor: '#FFD700',
-        tabBarInactiveTintColor: '#FFFFFF',
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: 'bold',
-        },
-        tabBarIconStyle: {
-          marginTop: 5,
-        },
-      }}
-    >
+    <Tab.Navigator screenOptions={{
+      tabBarStyle: {
+        backgroundColor: '#1E8449',
+        borderTopWidth: 0,
+        elevation: 0,
+        shadowOpacity: 0,
+        height: 50,
+        paddingBottom: 5,
+      },
+      tabBarActiveTintColor: '#FFD700',
+      tabBarInactiveTintColor: '#FFFFFF',
+      tabBarLabelStyle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+      },
+      tabBarIconStyle: {
+        marginTop: 5,
+      },
+    }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -54,6 +70,6 @@ export default function MyTabs() {
           title: "About App"
         }}
       />
-    </Tabs>
+    </Tab.Navigator>
   );
 }

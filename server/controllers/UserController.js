@@ -36,24 +36,25 @@ module.exports = {
     },
     async login(req, res, next) {
         try {
-            const {email, password} = req.body
+            const { email, password } = req.body;
+            console.log('Login attempt:', email); // Added log here
 
-            if(!email || !password) throw {status: 400, message: "Email & password is required"}
+            if (!email || !password) throw { status: 400, message: "Email & password is required" };
 
             let user = await User.findOne({
                 where: {
                     email
                 }
-            })
+            });
 
-            if(!user || !compareSync(password, user.password)) throw {status: 401, message: "Email or password is incorrect"}
+            if (!user || !compareSync(password, user.password)) throw { status: 401, message: "Email or password is incorrect" };
             
-            const token = signToken({id: user.id, email: user.email})
+            const token = signToken({ id: user.id, email: user.email });
             
-            res.status(200).json({access_token: token})
+            res.status(200).json({ access_token: token });
         } catch (error) {
-            console.log(error)
-            res.status(error.status || 500).json({message: error.message || "Internal server error"})
+            console.log('Login error:', error); // Added log here
+            res.status(error.status || 500).json({ message: error.message || "Internal server error" });
         }
     },
     async post(req, res, next) {

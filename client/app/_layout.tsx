@@ -1,10 +1,10 @@
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../context/AuthContext";
 import MyTabs from "@/navigators/MyTabs";
 import * as SecureStore from "expo-secure-store";
 import { useState, useEffect } from "react";
-import { ApolloProvider, useLazyQuery } from "@apollo/client";
 import axios from 'axios';
+import LoginScreen from "@/Screen/LoginScreen";
+import MyStack from "@/navigators/MyStack";
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -15,7 +15,6 @@ export default function RootLayout() {
     try {
       const token = await SecureStore.getItemAsync('access_token');
       if (token) {
-        // Verify token with backend
         const response = await axios.post('http://localhost:3000/auth/verify-token', { token });
         if (response.data.valid) {
           setIsSignedIn(true);
@@ -35,11 +34,11 @@ export default function RootLayout() {
   }, []);
 
   if (!isReady) {
-    return null; // or a loading spinner
+    return null;
   }
   return (
     <AuthContext.Provider value={{ isSignedIn, setIsSignedIn, isNewUser, setIsNewUser }}>
-      <MyTabs />
+      {!isSignedIn ? <MyStack /> : <MyTabs />}
     </AuthContext.Provider>
-  );
+  )
 }
