@@ -31,12 +31,14 @@ Ensure you have the following installed:
 2. Install dependencies:
 
    ```bash
+   cd client
    npm install
    ```
 
 3. Start the app:
 
    ```bash
+   cd client
    npx expo start
    ```
 
