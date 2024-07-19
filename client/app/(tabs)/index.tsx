@@ -10,12 +10,12 @@ import {
 } from "react-native";
 import axios from "axios";
 import { Audio, AVPlaybackStatus } from "expo-av";
-import SurahPicker from "../components/SurahPicker";
-import ReciterPicker from "../components/ReciterPicker";
-import MoshafRadio from "../components/MoshafRadio";
-import AudioControls from "../components/AudioControls";
-import DownloadButton from "../components/DownloadButton";
-import ProgressBar from "../components/ProgressBar";
+import SurahPicker from "../../components/SurahPicker";
+import ReciterPicker from "../../components/ReciterPicker";
+import MoshafRadio from "../../components/MoshafRadio";
+import AudioControls from "../../components/AudioControls";
+import DownloadButton from "../../components/DownloadButton";
+import ProgressBar from "../../components/ProgressBar";
 import moment from "moment-hijri";
 import { Dimensions } from "react-native";
 // import tw from 'tailwind-react-native-classnames';
@@ -100,10 +100,6 @@ const Index = () => {
 
     setupAudio();
 
-    // Cleanup function jika diperlukan
-    return () => {
-      // Lakukan cleanup jika diperlukan
-    };
   }, []); // Empty dependency array means this effect runs once on mount
 
   const playBackgroundAudio = async () => {
@@ -187,10 +183,6 @@ const Index = () => {
       setIsPaused(false);
     }
   };
-
-  // if (loading) {
-  //   return <ActivityIndicator size="large" color="#2E7D32" />;
-  // }
 
   const audioUrl = `${
     reciters
