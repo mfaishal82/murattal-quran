@@ -43,6 +43,15 @@ Ensure you have the following installed:
 3. Start the app:
 
    ```bash
+   cd server
+   nodemon app
+   ```
+   ```bash
+   cd server
+   npx ngrok http://localhost:8080
+   ```
+
+   ```bash
    cd client
    npx expo start
    ```
