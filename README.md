@@ -1,6 +1,6 @@
-# murattal-quran
+# Tasmi' App
 
-Murattal Al-Qur'an is an application designed to provide easy access to Quranic recitations. Listen to various reciters, download surahs, and enhance your Quranic experience.
+Tasmi' App is an application designed to provide easy access to Quranic recitations. Listen to various reciters, download surahs, and enhance your Quranic experience.
 
 ## Features
 
@@ -24,11 +24,16 @@ Ensure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/murattal-quran.git
+   git clone https://github.com/mfaishal82/murattal-quran.git
    cd murattal-quran
    ```
 
 2. Install dependencies:
+
+   ```bash
+   cd server
+   npm install
+   ```
 
    ```bash
    cd client

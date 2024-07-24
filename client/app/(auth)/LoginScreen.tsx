@@ -23,7 +23,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       console.log('Attempting login with:', { email, password }); // Added log
-      const response = await axios.post('https://7fee-114-10-79-77.ngrok-free.app/auth/login', {
+      const response = await axios.post('https://1f7d-114-10-76-20.ngrok-free.app/auth/login', {
         email,
         password,
       });
