@@ -35,6 +35,8 @@ const PrayerTime: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
   const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
+  const [nextPrayer, setNextPrayer] = useState<string>("");
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
 
   const adjustTime = (time: string, minutesToAdd: number): string => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -43,14 +45,53 @@ const PrayerTime: React.FC = () => {
     return date.toTimeString().slice(0, 5);
   };
 
+    const calculateNextPrayer = (times: PrayerTimes): (() => void) => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const prayerTimesList = Object.entries(times).map(([name, time]) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return { name, minutes: hours * 60 + minutes };
+    });
+
+    prayerTimesList.sort((a, b) => a.minutes - b.minutes);
+
+    let nextPrayer = prayerTimesList.find(prayer => prayer.minutes > currentTime);
+    if (!nextPrayer) {
+      nextPrayer = prayerTimesList[0]; // If it's after Isha, next prayer is tomorrow's Shubh
+    }
+
+    setNextPrayer(nextPrayer.name);
+
+    const updateTimeRemaining = () => {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      let remainingMinutes = nextPrayer.minutes - currentTime;
+      if (remainingMinutes < 0) {
+        remainingMinutes += 24 * 60; // Add 24 hours if it's tomorrow's prayer
+      }
+      const hours = Math.floor(remainingMinutes / 60);
+      const minutes = remainingMinutes % 60;
+      setTimeRemaining(`${hours}h ${minutes}m`);
+    };
+
+    updateTimeRemaining();
+    const timer = setInterval(updateTimeRemaining, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  };
+
   useEffect(() => {
-    const fetchPrayerTimes = async () => {
+    const fetchPrayerTimes = async (): Promise<() => void> => {
+      let cleanupFunction = () => {};
+
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           setError("Permission to access location was denied");
           setLoading(false);
-          return;
+          cleanupFunction = () => {};
+          return cleanupFunction;
         }
 
         let location = await Location.getCurrentPositionAsync({});
@@ -78,23 +119,40 @@ const PrayerTime: React.FC = () => {
 
         setPrayerTimes(formattedTimings);
         setHijriDate(response.data.data.date.hijri);
+
+        const cleanupTimer = calculateNextPrayer(formattedTimings);
+        return cleanupTimer;
       } catch (error) {
         setError("Failed to fetch prayer times");
       } finally {
         setLoading(false);
       }
+      return cleanupFunction;
     };
 
-    fetchPrayerTimes();
+    let cleanup: (() => void) | undefined;
+
+    fetchPrayerTimes().then(cleanupFn => {
+      cleanup = cleanupFn;
+    });
+
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, []);
 
   const formatHijriDate = (hijriDate: HijriDate | null): string => {
     if (!hijriDate) return "";
-    return `${hijriDate.day} ${hijriDate.month.ar} ${hijriDate.year}`;
+    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const day = hijriDate.day.split('').map(digit => arabicNumbers[parseInt(digit)] || digit).join('');
+    const year = hijriDate.year.split('').map(digit => arabicNumbers[parseInt(digit)] || digit).join('');
+    return `${day} ${hijriDate.month.ar} ${year}`;
   };
 
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const formattedDate = currentDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   if (loading) {
     return (
@@ -117,14 +175,17 @@ const PrayerTime: React.FC = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.location}>Current location <Text style={{color: "yellow"}}>{location}</Text></Text>
-        <View style={styles.buttonContainer}>
-          {/* Button container content remains the same */}
-        </View>
+        
         <Text style={styles.date}>{formattedDate}</Text>
         <Text style={styles.hijriDate}>{formatHijriDate(hijriDate)}</Text>
       </View>
       {prayerTimes && (
         <>
+        <View style={styles.nextPrayerContainer}>
+          <Text style={styles.nextPrayer}>
+            Next prayer: <Text style={styles.nextPrayerHighlight}>{nextPrayer}</Text> in <Text style={styles.nextPrayerHighlight}>{timeRemaining}</Text>
+          </Text>
+        </View>
           <View style={{ alignItems: "center", paddingTop: 20 }}>
             {Object.entries(prayerTimes).map(([prayer, time]) => (
               <View key={prayer} style={styles.prayerTimeContainer}>
@@ -239,7 +300,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E8449',
     fontWeight: '600',
-  }
+  },
+  nextPrayerContainer: {
+    backgroundColor: '#1E8449',
+    padding: 15,
+    marginTop: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  nextPrayer: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  nextPrayerHighlight: {
+    color: "#FFEB3B",
+  },
+  prayerTimesContainer: {
+    alignItems: "center",
+    paddingTop: 20,
+    paddingHorizontal: 10,
+  },
 });
 
 export default PrayerTime;
