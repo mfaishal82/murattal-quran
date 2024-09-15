@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import axios from "axios";
-import moment from "moment-hijri";
 
 interface PrayerTimes {
   Shubh: string;
@@ -19,11 +18,30 @@ interface PrayerTimes {
   Isha: string;
 }
 
+interface HijriDate {
+  date: string;
+  format: string;
+  day: string;
+  weekday: { en: string; ar: string };
+  month: { number: number; en: string; ar: string };
+  year: string;
+  designation: { abbreviated: string; expanded: string };
+  holidays: string[];
+}
+
 const PrayerTime: React.FC = () => {
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
+  const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
+
+  const adjustTime = (time: string, minutesToAdd: number): string => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes + minutesToAdd);
+    return date.toTimeString().slice(0, 5);
+  };
 
   useEffect(() => {
     const fetchPrayerTimes = async () => {
@@ -50,15 +68,16 @@ const PrayerTime: React.FC = () => {
 
         const timings = response.data.data.timings;
         const formattedTimings: PrayerTimes = {
-          Shubh: timings.Fajr,
+          Shubh: adjustTime(timings.Fajr, 2),
           Sunrise: timings.Sunrise,
-          Dhuhr: timings.Dhuhr,
-          Asr: timings.Asr,
-          Maghrib: timings.Maghrib,
-          Isha: timings.Isha,
+          Dhuhr: adjustTime(timings.Dhuhr, 3),
+          Asr: adjustTime(timings.Asr, 4),
+          Maghrib: adjustTime(timings.Maghrib, 2),
+          Isha: adjustTime(timings.Isha, 2),
         };
 
         setPrayerTimes(formattedTimings);
+        setHijriDate(response.data.data.date.hijri);
       } catch (error) {
         setError("Failed to fetch prayer times");
       } finally {
@@ -69,15 +88,13 @@ const PrayerTime: React.FC = () => {
     fetchPrayerTimes();
   }, []);
 
-  const arabicNumerals = (date: string) => {
-    return date.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩".charAt(Number(d)));
+  const formatHijriDate = (hijriDate: HijriDate | null): string => {
+    if (!hijriDate) return "";
+    return `${hijriDate.day} ${hijriDate.month.ar} ${hijriDate.year}`;
   };
 
   const currentDate = new Date();
-  const formattedDate = moment(currentDate).format("dddd, D MMMM YYYY");
-  const formattedHijriDate = arabicNumerals(
-    moment(currentDate).format("iD iMMMM iYYYY")
-  );
+  const formattedDate = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   if (loading) {
     return (
@@ -101,15 +118,10 @@ const PrayerTime: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.location}>Current location <Text style={{color: "yellow"}}>{location}</Text></Text>
         <View style={styles.buttonContainer}>
-          {/* <View style={styles.button}>
-            <Text style={styles.buttonText}>Lokasi Masjid</Text>
-          </View>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Arah Kiblat</Text>
-          </View> */}
+          {/* Button container content remains the same */}
         </View>
         <Text style={styles.date}>{formattedDate}</Text>
-        <Text style={styles.hijriDate}>{formattedHijriDate}</Text>
+        <Text style={styles.hijriDate}>{formatHijriDate(hijriDate)}</Text>
       </View>
       {prayerTimes && (
         <>
