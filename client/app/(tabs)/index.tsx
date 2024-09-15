@@ -262,15 +262,15 @@ const Index = () => {
           {selectedMoshaf && (
             <>
             <Slider
-              style={{width: '100%', height: 40}}
-              minimumValue={0}
-              maximumValue={duration}
-              value={position}
-              onValueChange={(value) => setPosition(value)}
-              onSlidingComplete={seekAudio}
-              minimumTrackTintColor="#1E8449"
-              maximumTrackTintColor="#000000"
-            />
+                style={{width: '100%', height: 40}}
+                minimumValue={0}
+                maximumValue={duration}
+                value={position}
+                onValueChange={(value) => setPosition(value)}
+                onSlidingComplete={seekAudio}
+                minimumTrackTintColor="#1E8449"
+                maximumTrackTintColor="#000000"
+              />
               <View style={styles.timeContainer}>
                 <Text>{formatTime(position)}</Text>
                 <Text>{formatTime(duration)}</Text>

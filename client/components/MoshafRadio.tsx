@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import RadioForm from "react-native-simple-radio-button";
 
@@ -24,10 +24,16 @@ const MoshafRadio: React.FC<MoshafRadioProps> = ({
         }))
     : [];
 
+  useEffect(() => {
+    if (moshafOptions.length > 0 && !selectedMoshaf) {
+      setSelectedMoshaf(moshafOptions[0].value);
+    }
+  }, [moshafOptions, selectedMoshaf, setSelectedMoshaf]);
+
   return (
     <RadioForm
       radio_props={moshafOptions}
-      initial={-1}
+      initial={0}
       onPress={(value) => setSelectedMoshaf(value)}
       buttonColor={"#2E7D32"}
     />
