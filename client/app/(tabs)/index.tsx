@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import DownloadButton from "../../components/DownloadButton";
 import ProgressBar from "../../components/ProgressBar";
 import moment from "moment-hijri";
 import { Dimensions } from "react-native";
+import Slider from '@react-native-community/slider';
 // import tw from 'tailwind-react-native-classnames';
 // import { registerBackgroundTask } from "../scripts/BackgroundAudioTask";
 
@@ -51,6 +52,9 @@ const Index = () => {
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [downloading, setDownloading] = useState(false);
   const [hijriDate, setHijriDate] = useState<string>("");
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const positionRef = useRef(0);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
   useEffect(() => {
@@ -133,12 +137,6 @@ const Index = () => {
       return;
     }
 
-    const reciter = reciters.find((r: any) => r.id === selectedReciter);
-    const moshaf = reciter?.moshaf.find(
-      (m: { id: string }) => m.id === selectedMoshaf
-    );
-    const audioUrl = `${moshaf?.server}${selectedSurah}.mp3`;
-
     try {
       if (sound) {
         await sound.unloadAsync();
@@ -151,8 +149,25 @@ const Index = () => {
 
       setSound(newSound);
       setIsPlaying(true);
+
+      // Start updating position every 100ms
+      const intervalId = setInterval(async () => {
+        if (newSound) {
+          const status = await newSound.getStatusAsync();
+          if (status.isLoaded) {
+            setPosition(status.positionMillis);
+          }
+        }
+      }, 100);
+
+      // Clear interval when audio finishes
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          clearInterval(intervalId);
+        }
+      });
+
     } catch (error) {
-      // console.error("Error loading audio", error);
       Alert.alert(
         "Error",
         "Maaf audio Qari' ini tidak tersedia. Silahkan coba Qari' lain."
@@ -161,8 +176,13 @@ const Index = () => {
   };
 
   const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (status.isLoaded && status.didJustFinish) {
-      setIsPlaying(false);
+    if (status.isLoaded) {
+      setPosition(status.positionMillis);
+      positionRef.current = status.positionMillis;
+      setDuration(status.durationMillis || 0);
+      if (status.didJustFinish) {
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -181,6 +201,13 @@ const Index = () => {
       setSound(null);
       setIsPlaying(false);
       setIsPaused(false);
+    }
+  };
+
+  const seekAudio = async (value: number) => {
+    if (sound) {
+      await sound.setPositionAsync(value);
+      setPosition(value);
     }
   };
 
@@ -234,6 +261,20 @@ const Index = () => {
           )}
           {selectedMoshaf && (
             <>
+            <Slider
+                style={{width: '100%', height: 40}}
+                minimumValue={0}
+                maximumValue={duration}
+                value={position}
+                onValueChange={(value) => setPosition(value)}
+                onSlidingComplete={seekAudio}
+                minimumTrackTintColor="#1E8449"
+                maximumTrackTintColor="#000000"
+              />
+              <View style={styles.timeContainer}>
+                <Text>{formatTime(position)}</Text>
+                <Text>{formatTime(duration)}</Text>
+              </View>
               <AudioControls
                 isPlaying={isPlaying}
                 isPaused={isPaused}
@@ -264,6 +305,12 @@ const Index = () => {
       </View>
     </ScrollView>
   );
+};
+
+const formatTime = (millis: number) => {
+  const minutes = Math.floor(millis / 60000);
+  const seconds = ((millis % 60000) / 1000).toFixed(0);
+  return `${minutes}:${(Number(seconds) < 10 ? '0' : '')}${seconds}`;
 };
 
 const styles = StyleSheet.create({
@@ -356,6 +403,12 @@ const styles = StyleSheet.create({
     height: 10,
     backgroundColor: "#1E8449",
     borderRadius: 5,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
   },
 });
 
