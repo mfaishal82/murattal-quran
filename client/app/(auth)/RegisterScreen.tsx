@@ -22,7 +22,7 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
-      const response = await fetch('https://1f7d-114-10-76-20.ngrok-free.app/auth/register', {
+      const response = await fetch('https://7fee-114-10-79-77.ngrok-free.app/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
