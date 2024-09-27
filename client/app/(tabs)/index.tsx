@@ -19,7 +19,6 @@ import ProgressBar from "../../components/ProgressBar";
 import moment from "moment-hijri";
 import { Dimensions } from "react-native";
 // import tw from 'tailwind-react-native-classnames';
-// import { registerBackgroundTask } from "../scripts/BackgroundAudioTask";
 
 const toArabicNumbers = (num: string): string => {
   const arabicDigits: { [key: string]: string } = {
@@ -51,7 +50,20 @@ const Index = () => {
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [downloading, setDownloading] = useState(false);
   const [hijriDate, setHijriDate] = useState<string>("");
-  const [isDisabled, setIsDisabled] = useState<boolean>(false);
+
+  const handleReciterChange = (reciterId: number | null) => {
+    setSelectedReciter(reciterId);
+    if (reciterId !== null) {
+      const reciter = reciters.find((r) => r.id === reciterId);
+      if (reciter && reciter.moshaf.length > 0) {
+        setSelectedMoshaf(reciter.moshaf[0].id); // Mengatur Moshaf pertama sebagai default
+      } else {
+        setSelectedMoshaf(null);
+      }
+    } else {
+      setSelectedMoshaf(null);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,15 +113,6 @@ const Index = () => {
     setupAudio();
 
   }, []); // Empty dependency array means this effect runs once on mount
-
-  const playBackgroundAudio = async () => {
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: 'URL_AUDIO_ANDA' },
-      { shouldPlay: true, isLooping: false },
-      onPlaybackStatusUpdate
-    );
-    setSound(sound);
-  };
 
   useEffect(() => {
     return sound
@@ -217,7 +220,7 @@ const Index = () => {
               <ReciterPicker
                 reciters={reciters}
                 selectedReciter={selectedReciter}
-                setSelectedReciter={setSelectedReciter}
+                setSelectedReciter={handleReciterChange}
               />
             </>
           )}
