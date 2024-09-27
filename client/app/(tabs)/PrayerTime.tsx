@@ -24,15 +24,62 @@ const PrayerTime: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
+  const [nextPrayer, setNextPrayer] = useState<string>("");
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+
+  const adjustTime = (time: string, minutesToAdd: number): string => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes + minutesToAdd);
+    return date.toTimeString().slice(0, 5);
+  };
+
+  const calculateNextPrayer = (times: PrayerTimes) => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const prayerTimesList = Object.entries(times).map(([name, time]) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return { name, minutes: hours * 60 + minutes };
+    });
+
+    prayerTimesList.sort((a, b) => a.minutes - b.minutes);
+
+    let nextPrayer = prayerTimesList.find(prayer => prayer.minutes > currentTime);
+    if (!nextPrayer) {
+      nextPrayer = prayerTimesList[0]; // If it's after Isha, next prayer is tomorrow's Shubh
+    }
+
+    setNextPrayer(nextPrayer.name);
+
+    const updateTimeRemaining = () => {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      let remainingMinutes = nextPrayer.minutes - currentTime;
+      if (remainingMinutes < 0) {
+        remainingMinutes += 24 * 60; // Add 24 hours if it's tomorrow's prayer
+      }
+      const hours = Math.floor(remainingMinutes / 60);
+      const minutes = remainingMinutes % 60;
+      setTimeRemaining(`${hours}h ${minutes}m`);
+    };
+
+    updateTimeRemaining();
+    const timer = setInterval(updateTimeRemaining, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  };
 
   useEffect(() => {
-    const fetchPrayerTimes = async () => {
+    const fetchPrayerTimes = async (): Promise<() => void> => {
+      let cleanupFunction = () => {};
+
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           setError("Permission to access location was denied");
           setLoading(false);
-          return;
+          return cleanupFunction;
         }
 
         let location = await Location.getCurrentPositionAsync({});
@@ -50,23 +97,37 @@ const PrayerTime: React.FC = () => {
 
         const timings = response.data.data.timings;
         const formattedTimings: PrayerTimes = {
-          Shubh: timings.Fajr,
+          Shubh: adjustTime(timings.Fajr, 2),
           Sunrise: timings.Sunrise,
-          Dhuhr: timings.Dhuhr,
-          Asr: timings.Asr,
-          Maghrib: timings.Maghrib,
-          Isha: timings.Isha,
+          Dhuhr: adjustTime(timings.Dhuhr, 3),
+          Asr: adjustTime(timings.Asr, 4),
+          Maghrib: adjustTime(timings.Maghrib, 2),
+          Isha: adjustTime(timings.Isha, 2),
         };
 
         setPrayerTimes(formattedTimings);
+
+        cleanupFunction = calculateNextPrayer(formattedTimings);
       } catch (error) {
         setError("Failed to fetch prayer times");
       } finally {
         setLoading(false);
       }
+
+      return cleanupFunction;
     };
 
-    fetchPrayerTimes();
+    let cleanup: (() => void) | undefined;
+
+    fetchPrayerTimes().then(cleanupFn => {
+      cleanup = cleanupFn;
+    });
+
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, []);
 
   const arabicNumerals = (date: string) => {
@@ -100,16 +161,13 @@ const PrayerTime: React.FC = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.location}>Current location <Text style={{color: "yellow"}}>{location}</Text></Text>
-        <View style={styles.buttonContainer}>
-          {/* <View style={styles.button}>
-            <Text style={styles.buttonText}>Lokasi Masjid</Text>
-          </View>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Arah Kiblat</Text>
-          </View> */}
-        </View>
         <Text style={styles.date}>{formattedDate}</Text>
         <Text style={styles.hijriDate}>{formattedHijriDate}</Text>
+      </View>
+      <View style={styles.nextPrayerContainer}>
+        <Text style={styles.nextPrayer}>
+          Next prayer: <Text style={styles.nextPrayerHighlight}>{nextPrayer}</Text> in <Text style={styles.nextPrayerHighlight}>{timeRemaining}</Text>
+        </Text>
       </View>
       {prayerTimes && (
         <>
@@ -227,7 +285,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E8449',
     fontWeight: '600',
-  }
+  },
+  nextPrayerContainer: {
+    backgroundColor: '#24d16d',
+    padding: 15,
+    marginTop: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  nextPrayer: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  nextPrayerHighlight: {
+    color: "#FFEB3B",
+  },
 });
 
 export default PrayerTime;
