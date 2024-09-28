@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, ScrollView, TouchableOpacity, Linking } from "r
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const AboutApp = () => {
-    const appVersion = "1.0.0"; // Ganti dengan versi aplikasi Anda
+    const appVersion = "1.1.0";
 
     const openLink = (url: string) => {
         Linking.openURL(url).catch((err) => console.error('Terjadi kesalahan', err));

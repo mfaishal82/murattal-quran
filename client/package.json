@@ -56,6 +56,7 @@
     "react-native-screens": "^3.31.1",
     "react-native-simple-radio-button": "^2.7.4",
     "react-native-sound": "^0.11.2",
+    "react-native-track-player": "^4.1.1",
     "react-native-web": "~0.19.10",
     "tailwind-react-native-classnames": "^1.5.1"
   },

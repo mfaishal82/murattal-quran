@@ -237,10 +237,12 @@ const Index = () => {
   const stopAudio = async () => {
     if (sound) {
       await sound.stopAsync();
+      await sound.setPositionAsync(0);
       await sound.unloadAsync();
       setSound(null);
       setIsPlaying(false);
       setIsPaused(false);
+      setPosition(0);
     }
   };
 
@@ -273,6 +275,7 @@ return (
       </View>
       {loading ? (
         <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>بسم الله الرحمن الرحيم</Text>
           <ActivityIndicator size="large" color="white" />
           <Text style={styles.loadingText}>Please Wait...</Text>
         </View>
@@ -395,7 +398,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    height: Dimensions.get("window").height - 200, // Sesuaikan tinggi sesuai kebutuhan
+    height: Dimensions.get("window").height - 200,
   },
   loadingText: {
     marginTop: 10,

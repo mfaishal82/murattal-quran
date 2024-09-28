@@ -301,9 +301,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
     textAlign: "center",
+    textShadowColor: "#4d4500",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   nextPrayerHighlight: {
-    color: "#FFEB3B",
+    color: "#fae105",
+    textShadowColor: "#4d4500",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
 });
 
