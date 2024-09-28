@@ -1,7 +1,8 @@
-import React from "react";
-import { TouchableOpacity, Text, Alert, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { TouchableOpacity, Text, Alert, StyleSheet, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 
 interface DownloadButtonProps {
   audioUrl: string;
@@ -18,28 +19,63 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   setDownloading,
   isDisabled,
 }) => {
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS === "android") {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Izin Diperlukan", "Aplikasi membutuhkan izin untuk menyimpan file.");
+        }
+      }
+    })();
+  }, []);
+
   const downloadAudio = async () => {
+    if (isDisabled) return; // Tambahkan pengecekan ini untuk memastikan fungsi tidak dijalankan saat disabled
     try {
       setDownloading(true);
+      const fileName = audioUrl.split("/").pop() || "audio.mp3";
+
       const downloadResumable = FileSystem.createDownloadResumable(
         audioUrl,
-        FileSystem.documentDirectory + `${audioUrl.split("/").pop()}`,
+        FileSystem.documentDirectory + fileName,
         {},
         onDownloadProgress
       );
 
-      const { uri } =
-        (await downloadResumable.downloadAsync()) as FileSystem.DownloadResult;
-      console.log("Downloaded to:", uri);
-      Alert.alert(
-        "Download Complete",
-        `File MP3 has been downloaded successfully.\nYou can find it in ${uri}`
-      );
+      const result = await downloadResumable.downloadAsync();
+
+      if (result && result.uri) {
+        const { uri } = result;
+        console.log("Downloaded to:", uri);
+
+        if (Platform.OS === "android") {
+          const asset = await MediaLibrary.createAssetAsync(uri);
+          const album = await MediaLibrary.getAlbumAsync("Download");
+          if (album == null) {
+            await MediaLibrary.createAlbumAsync("Download", asset, false);
+          } else {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+          }
+          Alert.alert(
+            "Download Selesai",
+            `File MP3 telah diunduh ke folder Download.\nLokasi: ${asset.uri}`
+          );
+        } else {
+          Alert.alert(
+            "Download Selesai",
+            `File MP3 telah diunduh ke folder dokumen aplikasi.\nLokasi: ${uri}`
+          );
+        }
+      } else {
+        Alert.alert("Download Gagal", "Tidak dapat memperoleh URI file yang diunduh.");
+      }
     } catch (error) {
       console.error("Download error:", error);
-      Alert.alert("Download Failed", "Failed to download MP3 file.");
+      Alert.alert("Download Gagal", "Gagal mengunduh file MP3.");
     } finally {
       setDownloading(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -77,38 +113,6 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#FAFAFA",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#2E7D32",
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#3E4A59",
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-    backgroundColor: "#FFF",
-    borderColor: "#DDD",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 20,
-  },
   iconButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -128,11 +132,22 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    color: "grey",
   },
   disabledButton: {
     opacity: 0.5,
     backgroundColor: "#F5F5F5",
+  },
+  progressContainer: {
+    height: 10,
+    width: "100%",
+    backgroundColor: "#E0E0E0",
+    borderRadius: 5,
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#2196F3",
   },
 });
 

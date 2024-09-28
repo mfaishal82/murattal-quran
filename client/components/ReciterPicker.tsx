@@ -23,6 +23,7 @@ const ReciterPicker: React.FC<ReciterPickerProps> = ({
       onValueChange={(itemValue) => setSelectedReciter(itemValue)}
       style={styles.picker}
     >
+      <Picker.Item label="Select Reciter" value={null} />
       {reciterOptions}
     </Picker>
   );
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     borderColor: "#DDD",
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 10,
   }
 });
 

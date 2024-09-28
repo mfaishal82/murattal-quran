@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import axios from "axios";
 import { Audio, AVPlaybackStatus } from "expo-av";
@@ -14,11 +15,8 @@ import ReciterPicker from "../../components/ReciterPicker";
 import MoshafRadio from "../../components/MoshafRadio";
 import AudioControls from "../../components/AudioControls";
 import DownloadButton from "../../components/DownloadButton";
-import ProgressBar from "../../components/ProgressBar";
 import Slider from '@react-native-community/slider';
 import moment from "moment-hijri";
-import { Dimensions } from "react-native";
-// import tw from 'tailwind-react-native-classnames';
 
 const toArabicNumbers = (num: string): string => {
   const arabicDigits: { [key: string]: string } = {
@@ -42,9 +40,9 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [reciters, setReciters] = useState<any[]>([]);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [selectedSurah, setSelectedSurah] = useState<string | null>(null);
   const [selectedReciter, setSelectedReciter] = useState<number | null>(null);
   const [selectedMoshaf, setSelectedMoshaf] = useState<string | null>(null);
+  const [selectedSurah, setSelectedSurah] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
@@ -54,12 +52,30 @@ const Index = () => {
   const positionRef = useRef(0);
   const [hijriDate, setHijriDate] = useState<string>("");
 
+  const getAvailableSurahs = () => {
+    if (selectedReciter && selectedMoshaf) {
+      const reciter = reciters.find((r) => r.id === selectedReciter);
+      const moshaf = reciter?.moshaf.find((m: any) => m.id === selectedMoshaf);
+      if (moshaf) {
+        const surahList = moshaf.surah_list
+          .split(",")
+          .map((s: any) => s.trim().padStart(3, '0')); 
+        return surahList;
+      }
+    }
+    return [];
+  };
+
+  const availableSurahs = useMemo(() => getAvailableSurahs(), [selectedReciter, selectedMoshaf, reciters]);
+
   const handleReciterChange = (reciterId: number | null) => {
     setSelectedReciter(reciterId);
+    setSelectedSurah(null); // Reset Surah saat ganti reciter
+    setSelectedMoshaf(null);
     if (reciterId !== null) {
       const reciter = reciters.find((r) => r.id === reciterId);
       if (reciter && reciter.moshaf.length > 0) {
-        setSelectedMoshaf(reciter.moshaf[0].id); // Mengatur Moshaf pertama sebagai default
+        setSelectedMoshaf(reciter.moshaf[0].id);
       } else {
         setSelectedMoshaf(null);
       }
@@ -78,6 +94,7 @@ const Index = () => {
         setLoading(false);
       } catch (error) {
         setLoading(false);
+        Alert.alert("Error", "Tidak dapat mengambil data reciters.");
       }
     };
 
@@ -88,7 +105,7 @@ const Index = () => {
         sound.unloadAsync();
       }
     };
-  }, [sound]);
+  }, []);
 
   useEffect(() => {
     const hijriDate = moment().format("iD iMMMM iYYYY");
@@ -101,11 +118,8 @@ const Index = () => {
       try {
         await Audio.setAudioModeAsync({
           staysActiveInBackground: true,
-          // Opsi lain yang mungkin Anda perlukan:
           playThroughEarpieceAndroid: false,
-          // interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
           shouldDuckAndroid: true,
-          // interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
           playsInSilentModeIOS: true,
         });
       } catch (error) {
@@ -114,8 +128,7 @@ const Index = () => {
     };
 
     setupAudio();
-
-  }, []); 
+  }, []);
 
   useEffect(() => {
     return sound
@@ -124,6 +137,31 @@ const Index = () => {
         }
       : undefined;
   }, [sound]);
+
+  // Tambahkan useEffect untuk reset saat reciter atau surah berubah
+  useEffect(() => {
+    // Reset posisi slider
+    setPosition(0);
+
+    // Hentikan dan unload audio jika ada
+    const resetAudio = async () => {
+      if (sound) {
+        try {
+          await sound.stopAsync();
+          await sound.unloadAsync();
+        } catch (error) {
+          console.error("Error saat menghentikan audio:", error);
+        }
+        setSound(null);
+      }
+    };
+
+    resetAudio();
+
+    // Reset status kontrol audio
+    setIsPlaying(false);
+    setIsPaused(false);
+  }, [selectedReciter, selectedMoshaf, selectedSurah]);
 
   const playAudio = async () => {
     if (!selectedSurah || !selectedReciter || !selectedMoshaf) return;
@@ -154,7 +192,6 @@ const Index = () => {
       setSound(newSound);
       setIsPlaying(true);
 
-      // Start updating position every 100ms
       const intervalId = setInterval(async () => {
         if (newSound) {
           const status = await newSound.getStatusAsync();
@@ -164,7 +201,6 @@ const Index = () => {
         }
       }, 100);
 
-      // Clear interval when audio finishes
       newSound.setOnPlaybackStatusUpdate((status) => {
         if (status.isLoaded && status.didJustFinish) {
           clearInterval(intervalId);
@@ -174,7 +210,7 @@ const Index = () => {
     } catch (error) {
       Alert.alert(
         "Error",
-        "Maaf audio Qari' ini tidak tersedia. Silahkan coba Qari' lain."
+        "Maaf audio ini tidak tersedia. Silahkan coba Qari'/ Surah lain."
       );
     }
   };
@@ -215,43 +251,40 @@ const Index = () => {
     }
   };
 
-  const audioUrl = `${
-    reciters
-      .find((r) => r.id === selectedReciter)
-      ?.moshaf.find((m: { id: string }) => m.id === selectedMoshaf)?.server
-  }${selectedSurah}.mp3`;
+  const audioUrl = selectedReciter && selectedMoshaf && selectedSurah
+    ? `${reciters
+        .find((r) => r.id === selectedReciter)
+        ?.moshaf.find((m: { id: string }) => m.id === selectedMoshaf)?.server
+      }${selectedSurah}.mp3`
+    : "";
 
-  return (
-    <ScrollView>
-      <View style={styles.container}>
-        <View style={styles.headContainer}>
-          <Text style={styles.hijriDateStyle}>{hijriDate}</Text>
-          <Text style={styles.quoteText}>
-            "So when the Qur'an is recited,{" "}
-            <Text style={styles.quoteHighlight}>
-              then listen to it & pay attention
-            </Text>{" "}
-            that you may receive mercy."
-          </Text>
+return (
+  <ScrollView>
+    <View style={styles.container}>
+      <View style={styles.headContainer}>
+        <Text style={styles.hijriDateStyle}>{hijriDate}</Text>
+        <Text style={styles.quoteText}>
+          "So when the Qur'an is recited,{" "}
+          <Text style={styles.quoteHighlight}>
+            then listen to it & pay attention
+          </Text>{" "}
+          that you may receive mercy."
+        </Text>
+      </View>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="white" />
+          <Text style={styles.loadingText}>Please Wait...</Text>
         </View>
-        {loading && <ActivityIndicator size="large" color="#2E7D32" />}
+      ) : (
         <View style={styles.mainContainer}>
           <Text style={styles.title}>Murattal Al-Qur'an</Text>
-          <Text style={styles.label}>Choose Surah</Text>
-            <SurahPicker
-              selectedSurah={selectedSurah}
-              setSelectedSurah={setSelectedSurah}
-            />
-          {selectedSurah && (
-            <>
-              <Text style={styles.label}>Choose Qari'</Text>
-              <ReciterPicker
-                reciters={reciters}
-                selectedReciter={selectedReciter}
-                setSelectedReciter={handleReciterChange}
-              />
-            </>
-          )}
+          <Text style={styles.label}>Choose Qari'</Text>
+          <ReciterPicker
+            reciters={reciters}
+            selectedReciter={selectedReciter}
+            setSelectedReciter={handleReciterChange}
+          />
           {selectedReciter && (
             <>
               <Text style={styles.label}>Choose Moshaf</Text>
@@ -263,29 +296,45 @@ const Index = () => {
               />
             </>
           )}
-          {selectedMoshaf && (
+          {selectedReciter && selectedMoshaf && (
             <>
-              <Slider
-                style={{width: '100%', height: 40}}
-                minimumValue={0}
-                maximumValue={duration}
-                value={position}
-                onValueChange={(value) => setPosition(value)}
-                onSlidingComplete={seekAudio}
-                minimumTrackTintColor="#1E8449"
-                maximumTrackTintColor="#000000"
+              <Text style={styles.label}>Choose Surah</Text>
+              <SurahPicker
+                selectedSurah={selectedSurah}
+                setSelectedSurah={setSelectedSurah}
+                availableSurahs={availableSurahs}
               />
-              <View style={styles.timeContainer}>
-                <Text>{formatTime(position)}</Text>
-                <Text>{formatTime(duration)}</Text>
+            </>
+          )}
+          {selectedReciter && selectedMoshaf && getAvailableSurahs().length === 0 && (
+            <Text style={styles.errorText}>Tidak ada surah yang tersedia untuk pilihan ini.</Text>
+          )}
+          {selectedSurah && (
+            <>
+              <View style={styles.audioPlayerContainer}>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={duration}
+                  value={position}
+                  onValueChange={(value) => setPosition(value)}
+                  onSlidingComplete={seekAudio}
+                  minimumTrackTintColor="#1E8449"
+                  maximumTrackTintColor="#D1D1D1"
+                  thumbTintColor="#1E8449"
+                />
+                <View style={styles.timeContainer}>
+                  <Text style={styles.timeText}>{formatTime(position)}</Text>
+                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                </View>
+                <AudioControls
+                  isPlaying={isPlaying}
+                  isPaused={isPaused}
+                  playAudio={playAudio}
+                  pauseAudio={pauseAudio}
+                  stopAudio={stopAudio}
+                />
               </View>
-              <AudioControls
-                isPlaying={isPlaying}
-                isPaused={isPaused}
-                playAudio={playAudio}
-                pauseAudio={pauseAudio}
-                stopAudio={stopAudio}
-              />
               <DownloadButton
                 audioUrl={audioUrl}
                 downloadProgress={downloadProgress}
@@ -306,9 +355,10 @@ const Index = () => {
             </>
           )}
         </View>
-      </View>
-    </ScrollView>
-  );
+      )}
+    </View>
+  </ScrollView>
+);
 };
 
 const formatTime = (millis: number) => {
@@ -340,6 +390,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: Dimensions.get("window").height - 200, // Sesuaikan tinggi sesuai kebutuhan
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
   },
   hijriDateStyle: {
     color: "#FFD700",
@@ -374,28 +436,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: "#34495E",
   },
-  pickerContainer: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-  },
-  button: {
-    backgroundColor: "#1E8449",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   progressBar: {
     height: 10,
     width: width - 40,
@@ -408,10 +448,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E8449",
     borderRadius: 5,
   },
+  audioPlayerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 15,
+    marginTop: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
   timeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 5,
+    marginBottom: 0,
+  },
+  timeText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#D32F2F",
+    textAlign: "center",
     marginTop: 20,
   },
 });

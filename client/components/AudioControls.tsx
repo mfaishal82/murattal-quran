@@ -78,38 +78,6 @@ const AudioControls: React.FC<AudioControlsProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#FAFAFA",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#2E7D32",
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#3E4A59",
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-    backgroundColor: "#FFF",
-    borderColor: "#DDD",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  radioLabel: {
-    fontSize: 16,
-    color: "#3E4A59",
-    marginRight: 10,
-  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -128,24 +96,6 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 16,
     fontWeight: "600",
-  },
-  downloadButton: {
-    marginTop: 10,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  progressContainer: {
-    height: 10,
-    width: "100%",
-    backgroundColor: "#E0E0E0",
-    borderRadius: 5,
-    overflow: "hidden",
-    marginTop: 10,
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#2196F3",
   },
 });
 
