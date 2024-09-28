@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import axios from "axios";
-import moment from "moment-hijri";
 
 interface PrayerTimes {
   Shubh: string;
@@ -17,6 +16,17 @@ interface PrayerTimes {
   Asr: string;
   Maghrib: string;
   Isha: string;
+}
+
+interface HijriDate {
+  date: string;
+  format: string;
+  day: string;
+  weekday: { en: string; ar: string };
+  month: { number: number; en: string; ar: string };
+  year: string;
+  designation: { abbreviated: string; expanded: string };
+  holidays: string[];
 }
 
 const PrayerTime: React.FC = () => {
@@ -113,7 +123,6 @@ const PrayerTime: React.FC = () => {
       } finally {
         setLoading(false);
       }
-
       return cleanupFunction;
     };
 
@@ -130,15 +139,16 @@ const PrayerTime: React.FC = () => {
     };
   }, []);
 
-  const arabicNumerals = (date: string) => {
-    return date.replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩".charAt(Number(d)));
+  const formatHijriDate = (hijriDate: HijriDate | null): string => {
+    if (!hijriDate) return "";
+    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const day = hijriDate.day.split('').map(digit => arabicNumbers[parseInt(digit)] || digit).join('');
+    const year = hijriDate.year.split('').map(digit => arabicNumbers[parseInt(digit)] || digit).join('');
+    return `${day} ${hijriDate.month.ar} ${year}`;
   };
 
   const currentDate = new Date();
-  const formattedDate = moment(currentDate).format("dddd, D MMMM YYYY");
-  const formattedHijriDate = arabicNumerals(
-    moment(currentDate).format("iD iMMMM iYYYY")
-  );
+  const formattedDate = currentDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   if (loading) {
     return (
@@ -162,7 +172,7 @@ const PrayerTime: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.location}>Current location <Text style={{color: "yellow"}}>{location}</Text></Text>
         <Text style={styles.date}>{formattedDate}</Text>
-        <Text style={styles.hijriDate}>{formattedHijriDate}</Text>
+        <Text style={styles.hijriDate}>{formatHijriDate(hijriDate)}</Text>
       </View>
       <View style={styles.nextPrayerContainer}>
         <Text style={styles.nextPrayer}>
@@ -171,6 +181,11 @@ const PrayerTime: React.FC = () => {
       </View>
       {prayerTimes && (
         <>
+        <View style={styles.nextPrayerContainer}>
+          <Text style={styles.nextPrayer}>
+            Next prayer: <Text style={styles.nextPrayerHighlight}>{nextPrayer}</Text> in <Text style={styles.nextPrayerHighlight}>{timeRemaining}</Text>
+          </Text>
+        </View>
           <View style={{ alignItems: "center", paddingTop: 20 }}>
             {Object.entries(prayerTimes).map(([prayer, time]) => (
               <View key={prayer} style={styles.prayerTimeContainer}>
