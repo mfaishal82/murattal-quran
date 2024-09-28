@@ -26,23 +26,24 @@
     "@types/moment-hijri": "^2.1.4",
     "@types/react-native-simple-radio-button": "^2.7.7",
     "axios": "^1.7.2",
-    "expo": "~51.0.22",
+    "expo": "~51.0.21",
     "expo-av": "~14.0.6",
     "expo-constants": "~16.0.2",
     "expo-file-system": "~17.0.1",
     "expo-font": "~12.0.9",
     "expo-linking": "~6.3.1",
     "expo-location": "~17.0.1",
+    "expo-media-library": "^16.0.5",
     "expo-router": "~3.5.18",
     "expo-secure-store": "^13.0.2",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-task-manager": "~11.8.2",
-    "expo-updates": "^0.25.21",
+    "expo-updates": "^0.25.20",
     "expo-web-browser": "~13.0.3",
     "hijri-date": "^0.2.2",
-    "hijri-js": "^1.0.25",
+    "lucide-react": "^0.446.0",
     "moment-hijri": "^2.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -55,6 +56,7 @@
     "react-native-screens": "^3.31.1",
     "react-native-simple-radio-button": "^2.7.4",
     "react-native-sound": "^0.11.2",
+    "react-native-track-player": "^4.1.1",
     "react-native-web": "~0.19.10",
     "tailwind-react-native-classnames": "^1.5.1"
   },
@@ -69,6 +71,5 @@
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
   },
-  "private": true,
-  "type": "module"
+  "private": true
 }

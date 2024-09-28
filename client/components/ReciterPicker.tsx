@@ -2,8 +2,15 @@ import React from "react";
 import { Picker } from "@react-native-picker/picker";
 import { StyleSheet } from "react-native";
 
+interface Reciter {
+  id: number;
+  name: string;
+  letter: string;
+  moshaf: any[]; // Anda mungkin ingin mendefinisikan tipe yang lebih spesifik untuk moshaf
+}
+
 interface ReciterPickerProps {
-  reciters: any[];
+  reciters: Reciter[];
   selectedReciter: number | null;
   setSelectedReciter: (value: number | null) => void;
 }
@@ -13,7 +20,10 @@ const ReciterPicker: React.FC<ReciterPickerProps> = ({
   selectedReciter,
   setSelectedReciter,
 }) => {
-  const reciterOptions = reciters.map((reciter) => (
+  // Urutkan qari berdasarkan huruf (letter)
+  const sortedReciters = [...reciters].sort((a, b) => a.letter.localeCompare(b.letter, 'ar'));
+
+  const reciterOptions = sortedReciters.map((reciter) => (
     <Picker.Item key={reciter.id} label={reciter.name} value={reciter.id} />
   ));
 
@@ -23,6 +33,7 @@ const ReciterPicker: React.FC<ReciterPickerProps> = ({
       onValueChange={(itemValue) => setSelectedReciter(itemValue)}
       style={styles.picker}
     >
+      <Picker.Item label="Pilih Qari" value={null} />
       {reciterOptions}
     </Picker>
   );
@@ -36,7 +47,7 @@ const styles = StyleSheet.create({
     borderColor: "#DDD",
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 10,
   }
 });
 

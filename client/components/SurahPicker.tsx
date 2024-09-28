@@ -6,18 +6,22 @@ import { surahDetails } from "../scripts/surahDetails";
 interface SurahPickerProps {
   selectedSurah: string | null;
   setSelectedSurah: (value: string | null) => void;
+  availableSurahs: string[];
 }
 
 const SurahPicker: React.FC<SurahPickerProps> = ({
   selectedSurah,
   setSelectedSurah,
+  availableSurahs,
 }) => {
-  const surahOptions = surahDetails.map((surah) => {
-    const label = `${surah.number}. ${surah.name} {${surah.juz.join(", ")}}`;
-    return (
-      <Picker.Item key={surah.number} label={label} value={surah.number} />
-    );
-  });
+  const surahOptions = surahDetails
+    .filter((surah) => availableSurahs.includes(surah.number))
+    .map((surah) => {
+      const label = `${surah.number}. ${surah.name} {${surah.juz.join(", ")}}`;
+      return (
+        <Picker.Item key={surah.number} label={label} value={surah.number} />
+      );
+    });
 
   return (
     <Picker
@@ -25,6 +29,7 @@ const SurahPicker: React.FC<SurahPickerProps> = ({
       onValueChange={(itemValue) => setSelectedSurah(itemValue)}
       style={styles.picker}
     >
+      <Picker.Item label="Select Surah" value={null} />
       {surahOptions}
     </Picker>
   );

@@ -34,7 +34,6 @@ const PrayerTime: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<string | null>(null);
-  const [hijriDate, setHijriDate] = useState<HijriDate | null>(null);
   const [nextPrayer, setNextPrayer] = useState<string>("");
   const [timeRemaining, setTimeRemaining] = useState<string>("");
 
@@ -45,7 +44,7 @@ const PrayerTime: React.FC = () => {
     return date.toTimeString().slice(0, 5);
   };
 
-    const calculateNextPrayer = (times: PrayerTimes): (() => void) => {
+  const calculateNextPrayer = (times: PrayerTimes) => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
@@ -90,7 +89,6 @@ const PrayerTime: React.FC = () => {
         if (status !== "granted") {
           setError("Permission to access location was denied");
           setLoading(false);
-          cleanupFunction = () => {};
           return cleanupFunction;
         }
 
@@ -118,10 +116,8 @@ const PrayerTime: React.FC = () => {
         };
 
         setPrayerTimes(formattedTimings);
-        setHijriDate(response.data.data.date.hijri);
 
-        const cleanupTimer = calculateNextPrayer(formattedTimings);
-        return cleanupTimer;
+        cleanupFunction = calculateNextPrayer(formattedTimings);
       } catch (error) {
         setError("Failed to fetch prayer times");
       } finally {
@@ -175,9 +171,13 @@ const PrayerTime: React.FC = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.location}>Current location <Text style={{color: "yellow"}}>{location}</Text></Text>
-        
         <Text style={styles.date}>{formattedDate}</Text>
         <Text style={styles.hijriDate}>{formatHijriDate(hijriDate)}</Text>
+      </View>
+      <View style={styles.nextPrayerContainer}>
+        <Text style={styles.nextPrayer}>
+          Next prayer: <Text style={styles.nextPrayerHighlight}>{nextPrayer}</Text> in <Text style={styles.nextPrayerHighlight}>{timeRemaining}</Text>
+        </Text>
       </View>
       {prayerTimes && (
         <>
@@ -302,9 +302,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   nextPrayerContainer: {
-    backgroundColor: '#1E8449',
+    backgroundColor: '#24d16d',
     padding: 15,
-    marginTop: 6,
+    marginTop: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -316,14 +316,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
     textAlign: "center",
+    textShadowColor: "#4d4500",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   nextPrayerHighlight: {
-    color: "#FFEB3B",
-  },
-  prayerTimesContainer: {
-    alignItems: "center",
-    paddingTop: 20,
-    paddingHorizontal: 10,
+    color: "#fae105",
+    textShadowColor: "#4d4500",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
 });
 
