@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "murattal-quran",
+    "name": "Tasmi' App",
     "slug": "murattal-quran",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,10 +20,23 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mfaishal.murattalquran",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ba65b5ad-0114-4ce3-aa97-25dab38d2f64"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ba65b5ad-0114-4ce3-aa97-25dab38d2f64"
     }
   }
 }

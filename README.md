@@ -1,4 +1,4 @@
-# 🕌 Murattal Quran App
+# 🕌 Tasmi' App
 
 Aplikasi React Native yang indah dan modern untuk mendengarkan berbagai qari Al-Quran dengan menggunakan API dari [MP3Quran.net](https://www.mp3quran.net).
 
@@ -125,6 +125,43 @@ expo start
 4. **Buka di Device**
 - Scan QR code dengan Expo Go (Android/iOS)
 - Atau jalankan di emulator dengan menekan 'a' (Android) atau 'i' (iOS)
+
+## 📱 Build APK
+
+### Build dengan EAS (Recommended)
+
+1. **Install EAS CLI**
+```bash
+npm install -g @expo/eas-cli
+```
+
+2. **Login ke Expo**
+```bash
+eas login
+```
+
+3. **Build APK**
+```bash
+# Build APK untuk testing
+eas build --platform android --profile preview
+
+# Build APK untuk production
+eas build --platform android --profile production
+
+# Build APK lokal (di komputer sendiri)
+eas build --platform android --profile preview --local
+```
+
+### Build dengan Expo CLI Classic
+```bash
+# Install expo-cli
+npm install -g expo-cli
+
+# Build APK standalone
+expo build:android -t apk
+```
+
+**Catatan:** File `eas.json` sudah dikonfigurasi untuk build APK langsung (bukan AAB)
 
 ## 🎮 Cara Penggunaan
 
