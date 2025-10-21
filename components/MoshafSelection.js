@@ -4,12 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import DropdownSelect from './DropdownSelect';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const MoshafSelection = ({ 
-  selectedMoshaf, 
-  selectedReciter, 
-  showDropdown, 
-  onToggleDropdown, 
-  onSelect 
+const MoshafSelection = ({
+  selectedMoshaf,
+  selectedReciter,
+  showDropdown,
+  onToggleDropdown,
+  onSelect
 }) => {
   const { t, isRTL } = useLanguage();
 
@@ -31,11 +31,11 @@ const MoshafSelection = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, isRTL && styles.rtlText]}>{t('selectMoshaf')}</Text>
-      <Text style={[styles.description, isRTL && styles.rtlText]}>
+      {/* <Text style={[styles.title, isRTL && styles.rtlText]}>{t('selectMoshaf')}</Text>*/}
+      {/* <Text style={[styles.description, isRTL && styles.rtlText]}>
         {t('selectMoshaf')} {t('forReciter')}: {selectedReciter.name}
-      </Text>
-      
+      </Text>*/}
+
       <DropdownSelect
         placeholder={t('chooseMoshaf')}
         value={selectedMoshaf?.name}
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '500',
   },
-  
+
   // RTL Support
   rtlText: {
     textAlign: 'right',

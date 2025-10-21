@@ -5,12 +5,12 @@ import DropdownSelect from './DropdownSelect';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getSurahName } from '../constants/translations';
 
-const SurahSelection = ({ 
-  selectedSurah, 
-  selectedMoshaf, 
-  showDropdown, 
-  onToggleDropdown, 
-  onSelect 
+const SurahSelection = ({
+  selectedSurah,
+  selectedMoshaf,
+  showDropdown,
+  onToggleDropdown,
+  onSelect
 }) => {
   const { t, isRTL, currentLanguage } = useLanguage();
   const renderSurahOption = (surah) => (
@@ -35,11 +35,11 @@ const SurahSelection = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, isRTL && styles.rtlText]}>{t('selectSurah')}</Text>
-      <Text style={[styles.description, isRTL && styles.rtlText]}>
-        {t('selectSurah')} {t('fromMoshaf')}: {selectedMoshaf.name}
-      </Text>
-      
+      {/* <Text style={[styles.title, isRTL && styles.rtlText]}>{t('selectSurah')}</Text>*/}
+      {/* <Text style={[styles.description, isRTL && styles.rtlText]}>
+        {t('selectSurah')} {t('fromMoshaf')}: <Text style={{color: '#fff', fontWeight: 'bold'}}> {selectedMoshaf.name} </Text>
+      </Text>*/}
+
       <DropdownSelect
         placeholder={t('chooseSurah')}
         value={selectedSurah?.name}
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     lineHeight: 20,
   },
-  
+
   // RTL Support
   rtlText: {
     textAlign: 'right',

@@ -12,12 +12,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-const AudioPlayer = ({ 
-  isPlaying, 
-  currentSurah, 
-  currentReciter, 
-  onPlayPause, 
-  onNext, 
+const AudioPlayer = ({
+  isPlaying,
+  currentSurah,
+  currentReciter,
+  onPlayPause,
+  onNext,
   onPrevious,
   position = 0,
   duration = 0
@@ -80,26 +80,26 @@ const AudioPlayer = ({
 
         {/* Controls */}
         <View style={styles.controlsContainer}>
-          <TouchableOpacity 
-            style={styles.controlButton} 
+          <TouchableOpacity
+            style={styles.controlButton}
             onPress={onPrevious}
           >
             <Ionicons name="play-skip-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.playButton} 
+          <TouchableOpacity
+            style={styles.playButton}
             onPress={onPlayPause}
           >
-            <Ionicons 
-              name={isPlaying ? "pause" : "play"} 
-              size={32} 
-              color="#fff" 
+            <Ionicons
+              name={isPlaying ? "pause" : "play"}
+              size={32}
+              color="#fff"
             />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.controlButton} 
+          <TouchableOpacity
+            style={styles.controlButton}
             onPress={onNext}
           >
             <Ionicons name="play-skip-forward" size={24} color="#fff" />

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  ActivityIndicator, 
+import {
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
   SafeAreaView,
   Alert,
   Vibration,
@@ -35,24 +35,24 @@ function MainApp() {
   const [reciters, setReciters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [audioLoading, setAudioLoading] = useState(false);
-  
+
   // Step-by-step selection states
   const [selectedReciter, setSelectedReciter] = useState(null);
   const [selectedMoshaf, setSelectedMoshaf] = useState(null);
   const [selectedSurah, setSelectedSurah] = useState(null);
-  
+
   // Dropdown states
   const [showReciterDropdown, setShowReciterDropdown] = useState(false);
   const [showMoshafDropdown, setShowMoshafDropdown] = useState(false);
   const [showSurahDropdown, setShowSurahDropdown] = useState(false);
-  
+
   // Audio states
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [favorites, setFavorites] = useState([]);
-  
+
   // Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFavoritesModalVisible, setIsFavoritesModalVisible] = useState(false);
@@ -114,11 +114,11 @@ function MainApp() {
 
     const availableSurahs = selectedMoshaf.surah_list.split(',').map(num => parseInt(num));
     const currentIndex = availableSurahs.indexOf(selectedSurah.number);
-    
+
     if (currentIndex > 0) {
       const previousSurahNumber = availableSurahs[currentIndex - 1];
       const previousSurahName = getSurahName(previousSurahNumber, currentLanguage);
-      
+
       // Stop current audio
       if (sound) {
         await sound.unloadAsync();
@@ -127,7 +127,7 @@ function MainApp() {
         setPosition(0);
         setDuration(0);
       }
-      
+
       setSelectedSurah({ number: previousSurahNumber, name: previousSurahName });
     }
   };
@@ -137,11 +137,11 @@ function MainApp() {
 
     const availableSurahs = selectedMoshaf.surah_list.split(',').map(num => parseInt(num));
     const currentIndex = availableSurahs.indexOf(selectedSurah.number);
-    
+
     if (currentIndex < availableSurahs.length - 1) {
       const nextSurahNumber = availableSurahs[currentIndex + 1];
       const nextSurahName = getSurahName(nextSurahNumber, currentLanguage);
-      
+
       // Stop current audio
       if (sound) {
         await sound.unloadAsync();
@@ -150,7 +150,7 @@ function MainApp() {
         setPosition(0);
         setDuration(0);
       }
-      
+
       setSelectedSurah({ number: nextSurahNumber, name: nextSurahName });
     }
   };
@@ -199,25 +199,25 @@ function MainApp() {
   const handlePlayFavorite = async (favoriteKey) => {
     // Parse favorite key: reciterId_moshafId_surahNumber
     const [reciterId, moshafId, surahNumber] = favoriteKey.split('_');
-    
+
     // Find the reciter
     const reciter = reciters.find(r => r.id === parseInt(reciterId));
     if (!reciter) return;
-    
+
     // Find the moshaf
     const moshaf = reciter.moshaf.find(m => m.id === parseInt(moshafId));
     if (!moshaf) return;
-    
+
     // Set up the selection
     const surahName = getSurahName(parseInt(surahNumber), currentLanguage);
-    
+
     setSelectedReciter(reciter);
     setSelectedMoshaf(moshaf);
     setSelectedSurah({ number: parseInt(surahNumber), name: surahName });
-    
+
     // Close the favorites modal
     setIsFavoritesModalVisible(false);
-    
+
     // Auto-play after a short delay to allow state to update
     setTimeout(() => {
       playAudio();
@@ -234,14 +234,14 @@ function MainApp() {
 
     const favoriteKey = `${selectedReciter.id}_${selectedMoshaf.id}_${selectedSurah.number}`;
     const isFavorite = favorites.includes(favoriteKey);
-    
+
     let newFavorites;
     if (isFavorite) {
       newFavorites = favorites.filter(f => f !== favoriteKey);
     } else {
       newFavorites = [...favorites, favoriteKey];
     }
-    
+
     saveFavorites(newFavorites);
     Vibration.vibrate(50);
   };
@@ -336,23 +336,65 @@ function MainApp() {
     );
   };
 
-  const handleReciterSelect = (reciter) => {
+  const handleReciterSelect = async (reciter) => {
     console.log('🎤 Reciter selected:', reciter.name);
+
+    // Stop current audio if playing
+    if (sound) {
+      try {
+        await sound.unloadAsync();
+        setSound(null);
+        setIsPlaying(false);
+        setPosition(0);
+        setDuration(0);
+      } catch (error) {
+        console.error('Error stopping audio:', error);
+      }
+    }
+
     setSelectedReciter(reciter);
     setSelectedMoshaf(null);
     setSelectedSurah(null);
     setShowReciterDropdown(false);
   };
 
-  const handleMoshafSelect = (moshaf) => {
+  const handleMoshafSelect = async (moshaf) => {
     console.log('📖 Moshaf selected:', moshaf.name);
+
+    // Stop current audio if playing
+    if (sound) {
+      try {
+        await sound.unloadAsync();
+        setSound(null);
+        setIsPlaying(false);
+        setPosition(0);
+        setDuration(0);
+      } catch (error) {
+        console.error('Error stopping audio:', error);
+      }
+    }
+
     setSelectedMoshaf(moshaf);
     setSelectedSurah(null);
     setShowMoshafDropdown(false);
   };
 
-  const handleSurahSelect = (surah) => {
+  const handleSurahSelect = async (surah) => {
     console.log('📜 Surah selected:', surah.name, 'Number:', surah.number);
+
+    // Stop current audio if playing
+    if (sound) {
+      try {
+        await sound.unloadAsync();
+        setSound(null);
+        setIsPlaying(false);
+        setPosition(0);
+        setDuration(0);
+      } catch (error) {
+        console.error('Error stopping audio:', error);
+      }
+    }
+
     setSelectedSurah(surah);
     setShowSurahDropdown(false);
   };
@@ -366,7 +408,7 @@ function MainApp() {
     console.log('Selected Reciter:', selectedReciter?.name);
     console.log('Selected Moshaf:', selectedMoshaf?.name);
     console.log('Selected Surah:', selectedSurah?.name, selectedSurah?.number);
-    
+
     if (!selectedReciter || !selectedMoshaf || !selectedSurah) {
       console.log('❌ Missing selection:', { selectedReciter: !!selectedReciter, selectedMoshaf: !!selectedMoshaf, selectedSurah: !!selectedSurah });
       return;
@@ -454,7 +496,7 @@ function MainApp() {
     <LinearGradient colors={['#1e3c72', '#2a5298', '#6366f1']} style={styles.container}>
       <SafeAreaView style={styles.container}>
         <StatusBar style="light" />
-        
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerIcon} onPress={toggleDrawer}>
@@ -467,7 +509,7 @@ function MainApp() {
         </View>
 
         {/* All Selections in One View */}
-        <ScrollView 
+        <ScrollView
           style={styles.contentContainer}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -532,7 +574,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    marginBottom: 16,
+    marginBottom: 13,
+    marginTop: 11,
   },
   headerIcon: {
     width: 56,
@@ -756,7 +799,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 40,
   },
-  
+
   // Wizard styles
   progressContainer: {
     paddingHorizontal: 20,
@@ -1006,7 +1049,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textShadow: '0px 1px 1px rgba(0, 0, 0, 0.3)',
   },
-  
+
   // Dropdown styles
   dropdownContainer: {
     marginBottom: 16,
@@ -1164,7 +1207,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  
+
   // RTL Support styles
   rtlText: {
     textAlign: 'right',
